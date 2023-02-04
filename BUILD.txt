@@ -1,0 +1,7 @@
+If you link libopenmpt statically, it must be compiled with -fPIC, e.g.:
+
+    ./configure --disable-openmpt123 --disable-examples CXXFLAGS="-g -O2 -fPIC"
+
+...but this probably isn't enough, since libs such as zlib will likely be linked dynamically.
+
+
