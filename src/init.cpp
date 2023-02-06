@@ -9,7 +9,7 @@
 #include <File.hpp>
 #include <Node.hpp>
 
-#include <libopenmpt/libopenmpt.hpp>
+#include <libopenmpt/libopenmpt_ext.hpp>
 
 
 const int SAMPLE_RATE = 44100;
@@ -39,8 +39,9 @@ public:
         register_method("stop", &ModPlayer::stop);
         register_property<ModPlayer, godot::String>("filename", &ModPlayer::m_filename, "");
         register_property<ModPlayer, int>("repeat_count", &ModPlayer::m_repeat_count, 0);
-        register_property<ModPlayer, int>("bpm", &ModPlayer::m_bpm, 32);
-        register_property<ModPlayer, int>("speed", &ModPlayer::m_speed, 1);
+        register_property<ModPlayer, int>("tempo", &ModPlayer::set_tempo, &ModPlayer::get_tempo, 125);
+        register_property<ModPlayer, int>("speed", &ModPlayer::set_speed, &ModPlayer::get_speed, 6);
+        register_property<ModPlayer, double>("tempo_factor", &ModPlayer::set_tempo_factor, &ModPlayer::get_tempo_factor, 1.0);
     }
 
     void _ready()
@@ -74,13 +75,16 @@ public:
         auto read = buf.read();
         // TODO: send in a log stream (probably an sstream); default is clog
         // TODO: what if module loading fails?
-        m_module = std::make_unique<openmpt::module>(read.ptr(), buf.size());
+        m_module = std::make_unique<openmpt::module_ext>(read.ptr(), buf.size());
+        // TODO: what if this fails?
+        m_interactive = static_cast<openmpt::ext::interactive*>(m_module->get_interface(openmpt::ext::interactive_id));
     }
 
     void reset()
     {
         if (m_module) {
             m_module->set_position_order_row(0, 0);
+            // TODO: reset tempo, speed, volume, channel muting, etc.
         }
     }
 
@@ -99,6 +103,60 @@ public:
     {
         pause();
         reset();
+    }
+
+    int get_tempo()
+    {
+        if (m_module) {
+            return m_module->get_current_tempo();
+        } else {
+            // TODO: better option?
+            return -1;
+        }
+    }
+
+    void set_tempo(int tempo)
+    {
+        // TODO: exception handling
+        if (m_module && m_interactive) {
+            m_interactive->set_current_tempo(tempo);
+        }
+    }
+
+    int get_speed() const
+    {
+        if (m_module) {
+            return m_module->get_current_speed();
+        } else {
+            // TODO: better option?
+            return -1;
+        }
+    }
+
+    void set_speed(int speed)
+    {
+        // TODO: exception handling
+        if (m_module && m_interactive) {
+            m_interactive->set_current_speed(speed);
+        }
+    }
+
+    double get_tempo_factor()
+    {
+        if (m_module && m_interactive) {
+            return m_interactive->get_tempo_factor();
+        } else {
+            // TODO: better option?
+            return 0.0;
+        }
+    }
+
+    void set_tempo_factor(double tempo_factor)
+    {
+        // TODO: exception handling
+        if (m_module && m_interactive) {
+            m_interactive->set_tempo_factor(tempo_factor);
+        }
     }
 
     void fill_buffer()
@@ -128,11 +186,10 @@ private:
     godot::String m_filename = "";
     int m_repeat_count = 0;
     bool m_playing = false;
-    int m_bpm = 32;
-    int m_speed = 1;
 
     // Other
-    std::unique_ptr<openmpt::module> m_module;
+    std::unique_ptr<openmpt::module_ext> m_module;
+    openmpt::ext::interactive* m_interactive = nullptr;
     godot::Ref<godot::AudioStreamGenerator> m_gen;
     godot::AudioStreamPlayer* m_player = nullptr;
     std::vector<float> m_buf_left;
