@@ -98,7 +98,10 @@ env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
 env.Append(LIBS=[cpp_library])
 
 # Need this for OpenMPT
-env.Append(LIBS=['openmpt'])
+if env['platform'] == 'windows':
+    env.Append(LIBS=['libopenmpt'])
+else:
+    env.Append(LIBS=['openmpt'])
 env.Prepend(LIBPATH=['.'])      # to find ./libopenmpt.a if present
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.

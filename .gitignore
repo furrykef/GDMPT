@@ -4,7 +4,13 @@
 # C++
 *.o
 *.os
+*.obj
 *.so
+*.lib
+*.ilk
+*.idb
+*.pdb
+*.exp
 
 # Godot
 .import/

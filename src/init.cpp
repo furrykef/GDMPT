@@ -13,6 +13,7 @@
 
 
 const int SAMPLE_RATE = 44100;
+const float BUFFER_LENGTH = 0.05;       // should be a bit longer than a frame
 
 
 class ModPlayer : public godot::Node
@@ -48,6 +49,7 @@ public:
     {
         m_gen.instance();
         m_gen->set_mix_rate(SAMPLE_RATE);   // TODO: use global mixer sampling rate?
+        m_gen->set_buffer_length(BUFFER_LENGTH);
         m_player = godot::AudioStreamPlayer::_new();
         m_player->set_stream(m_gen);
         add_child(m_player);
