@@ -9,8 +9,4 @@ script = ExtResource( 2 )
 [node name="ModPlayer" type="Node" parent="."]
 process_priority = -10000
 script = ExtResource( 1 )
-filename = ""
-repeat_count = null
-tempo = null
-speed = null
-tempo_factor = null
+buffer_length = 1.0

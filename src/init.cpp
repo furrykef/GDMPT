@@ -13,7 +13,7 @@
 
 
 const int SAMPLE_RATE = 44100;
-const float BUFFER_LENGTH = 0.05;       // should be a bit longer than a frame
+const float DEFAULT_BUFFER_LENGTH = 0.05;   // should be a bit longer than a frame
 
 
 class ModPlayer : public godot::Node
@@ -43,17 +43,19 @@ public:
         register_property<ModPlayer, int>("tempo", &ModPlayer::set_tempo, &ModPlayer::get_tempo, 125);
         register_property<ModPlayer, int>("speed", &ModPlayer::set_speed, &ModPlayer::get_speed, 6);
         register_property<ModPlayer, double>("tempo_factor", &ModPlayer::set_tempo_factor, &ModPlayer::get_tempo_factor, 1.0);
+        register_property<ModPlayer, real_t>("buffer_length", &ModPlayer::set_buffer_length, &ModPlayer::get_buffer_length, DEFAULT_BUFFER_LENGTH);
     }
 
     void _ready()
     {
         m_gen.instance();
         m_gen->set_mix_rate(SAMPLE_RATE);   // TODO: use global mixer sampling rate?
-        m_gen->set_buffer_length(BUFFER_LENGTH);
+        set_buffer_length_impl();
         m_player = godot::AudioStreamPlayer::_new();
         m_player->set_stream(m_gen);
         add_child(m_player);
         m_player->play();
+        m_ready = true;
     }
 
     void _process(float delta)
@@ -161,6 +163,25 @@ public:
         }
     }
 
+    // @TODO@ need to range check?
+    void set_buffer_length(real_t buf_len)
+    {
+        m_buf_len = buf_len;
+        if (m_ready) {
+            set_buffer_length_impl();
+        }
+    }
+
+    void set_buffer_length_impl()
+    {
+        m_gen->set_buffer_length(m_buf_len);
+    }
+
+    real_t get_buffer_length()
+    {
+        return m_buf_len;
+    }
+
     void fill_buffer()
     {
         if (!m_player || !m_module || !m_playing) {
@@ -188,6 +209,7 @@ private:
     godot::String m_filename = "";
     int m_repeat_count = 0;
     bool m_playing = false;
+    real_t m_buf_len = DEFAULT_BUFFER_LENGTH;
 
     // Other
     std::unique_ptr<openmpt::module_ext> m_module;
@@ -196,6 +218,7 @@ private:
     godot::AudioStreamPlayer* m_player = nullptr;
     std::vector<float> m_buf_left;
     std::vector<float> m_buf_right;
+    bool m_ready = false;
 };
 
 

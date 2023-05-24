@@ -1,4 +1,4 @@
-Building on Windows with the official libopenmpt binaries requires compiling in release mode. Otherwise it will appear to link but crash horribly.
+Building on Windows with the official libopenmpt binaries requires compiling in release mode (`scons platform=windows target=release`). Otherwise it will appear to link but crash horribly.
 
 
 On Linux, if you link libopenmpt statically, it must be compiled with -fPIC, e.g.:
